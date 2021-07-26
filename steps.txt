@@ -1,0 +1,422 @@
+1] Create the project and start the app
+2] Create a superuser 
+3] Add the name of the app in settings.py
+4] Create a urls.py file in the app, this is where we define the different pages of the blog.
+5] Link the newly created urls.py file with the urls.py file of the project.
+6] Go to models.py file define our model to create the table with the necessary fields in the database.
+7] Next go to views.py file to define class views
+8] Next create a templates folder in the app directory to create the necessary html templates for our blog
+9] Create a base.html file to add the styling to all the pages at once, then we extend the base.html in all the other html files.
+10] Next create a home.html create the landing page of our blog and type the code in jinja format to fetch the data dynamically.
+11] Next go to urls.py file to link the home.html we created.
+	- We use HomeView.as_view where HomeView is the one we defined in views.py.
+		- Since we defined HomeView as class view we pass in the argument(ListView) instead of (request)
+		- Where we imported ListView, DetailView and CreateView at the begining of views.py
+		- ListView is for listing all the information at once
+		- DetailView is for the seeing the entire article
+		- CreateView is for creating a new blog post from a webpage
+12] Next create a add_post.html file to create a form where we can add the blog posts directly from the website.
+	- We use django form system here rather than defining our own form here.
+	- For this we use {{ form.as_p }} command.
+	- To style the form we use bootstrap
+		- For this we create a forms.py file 
+		- Where we first import forms from django and the Post model we created in models.py
+		- Then we define a class PostForm with a child Meta class
+			- Here we define the model =  Post and add the fields we want
+			- Then to style the form we use widgets
+				- widgets = {
+            				'title': forms.TextInput(attrs={'class': 'form-control',}),
+            				'title_tag': forms.TextInput(attrs={'class': 'form-control'}),
+            				'author': forms.Select(attrs={'class': 'form-control'}),
+            				'body': forms.Textarea(attrs={'class': 'form-control'}),
+        				}
+					- Where 'title' is the name of the field we defined in the model
+					- TextInput is the name of html element
+					- Then we pass the attributes as a dictionary 
+						-'form-control' is a bootstrap class we use here
+13] Next create an update_post.html file to edit the blog posts.
+	- Here also we use the same code used in the add_post.html file
+	- Next go to the views.py to create a class view UpdatePost  with argument 'UpdateView'.
+	- Next go to the urls.py to link the newly created update_post.html file
+	- Next go to the home.html file to create an 'Edit' link and link it with the Jinja url.
+		- <a href="{% url 'update_post' post.pk %}">Edit</a>
+
+14] Next create an delete_post.html file delete the posts from the blog itself.
+	- Here also we use the same code used in the update_post.html
+	- Next go to views.py to create a class view DeletePostView with the argument 'DeleteView'
+		- We need to import DeleteView first
+	- Then to redirect to a page once the post is deleted we need to provide a 'success_url'
+		- For this we need to import 'reverse_lazy' at the begining
+		- success_url = reverse_lazy('home') 
+		- Here 'home' is the page we specify to redirect after the deletion.
+15] To add the date to the blog we can use django datetime module in models.py 
+	- from datetime import datetime, date
+	- Next we need to create a post_date field in the database 
+		- post_date = models.DateField(auto_now_add=True)
+			- (auto_now_add=True) Add the date automatically
+	- Next we need to make migrations and push that migration to the data base
+		- But since we already have posts in our data base in without the date field, django
+		  will ask to specify a default date to add to them.
+	- Next we can use the {{ post.post_date }} code to add the date wherever we want
+16] Setting up user authentication
+	- Django already comes with user authentication modules
+	- First we need to create a new app to deal with the user registration and related things
+		- python manage.py startapp members
+	- Next we go to the views.py of the new app and import modules and create the views.
+		- from django.shortcuts import render
+		  from django.views import generic
+		  from django.contrib.auth.forms import UserCreationForm
+		  from django.urls import reverse_lazy
+			- Here UserCreationForm is the one deals with the user registration
+		- Next we create our class views here
+		- class UserRegisterView(generic.CreateView):
+			form_class = UserCreationForm
+    			template_name = 'registration/register.html'
+    			success_url = reverse_lazy('login')
+			- Here we used CreateView before in our other app
+			- template_name is the name of the page where we set up our registration form
+		- Next we need to create a urls.py of the new app and link it to the urls.py of the project
+			- path('members/', include('django.contrib.auth.urls')),
+   			  path('members/', include('members.urls')),
+				- Here the first one deals with the login, logout and user registration pages
+				- While the second one is the urls.py file we just created in our new app
+			- Next we need to create a 'templates' folder in our new app and inside that create a 'registration' folder
+				- Next we need to create a register.html and login.html file here
+			- Then go to register.html and use {{ form.as_p }} to generate the form automatically 
+			- Then go to login.html and use the same code
+				- Here since we use django UserCreationForm class, it will automatically generate the necessary forms
+			- Then go to base.html to add the link to login and register pages 
+			- Then we need to setup a redirect page after the user login and logout.
+				- For this we need to go to settings.py and add the necessary code
+					- LOGIN_REDIRECT_URL = 'home'
+					  LOGOUT_REDIRECT_URL = 'home'
+17] To know whether a user is logged in or out
+	- For this we can use 'user.is_authenticated' function in django
+	- For this to work we need to set up a if statement in Jinja format.
+		{% if user.is_authenticated %}
+			The things we want to do if the user is logged in
+		{% else %}
+		{% endif %}
+	- To make sure the pages like update and delete posts won't load for someone other than a registered user, even
+	  if they knew the url of those pages we need to wrap the entire page in 
+		{% if user.is_authenticated %}
+18] Add categories to the blog
+	- We can add categories by either hard coding it to the existing model or create a new 'category' model, which will 
+	  allow users to create categories of thier own.
+	- But first we need to add a field to the existing model in our data base to include 'category' field.
+	- Next create a new 'Category' model in models.py
+		- We only need one field here
+	- Next go to views.py and create an 'AddCategoryView'
+		- Here we assign model = Category
+	- Now we need to create a 'add_category.html' file and use the same code as in the add_post.html file
+	- Now we need to link the newly created html file in urls.py file 
+	- Next go to base.html to create an 'Add Category' link
+	- Next go to home.html and add {{ post.category }} to dynamically insert the category of each blog post.
+
+19] Set up blog category page
+	- To add a blog category page where all the posts from one category is displayed we can use a function view
+	- For this go to views.py
+		- def CategoryView(request, cats):
+		  # Now define a variable to store the filtered data from the database
+		  # For this we need to write a query here since we don't use a class view
+			category_posts = Post.objects.filter(category=cats)
+		  # Now we need to render the categories.html page 
+			return render(request, 'categories.html',{'cats': cats, 'category_posts': category_posts})
+	- Next go to urls.py to link our html file
+		path('category/<str:cats>/', CategoryView, name='category')
+		# Here str:cats is the one that will denote the specific pages
+	- Next we need to create the categories.html file 
+		
+20] Slugify Catergory Page
+	- Slugify means to replace the spaces in the urls with '-', since it is the best practice.
+	- For this we can use the slugify filter
+	- Go to home.html add the code
+		- <a href="{% url 'category' post.category|slugify %}">{{ post.category}}</a>
+			- Here slugify will add the '-' wherever needed
+			
+		- Now we need to change the argument in the CategoryView, to replace the '-' that will be generated in the
+		  url, which will not match the category we create in our data base.
+			- category_posts = Post.objects.filter(category=cats.replace('-', ' '))
+21] To create a Category dropdown in the navbar
+	- For this first we need to define a function inside the HomeView to write query to fetch the data from the data base
+	- Here we first create a context variable and use that to create a context dictionary which we then use in a 
+	  for loop to loop through the data and display the content.
+	- Next we go to base.html to create a dropdown menu in the navbar
+		- % for item in cat_menu %}
+                    <a class="dropdown-item" href="{% url 'category' item|slugify %}">
+                      {{ item }}</a>
+                
+                {% endfor %}
+			- Here 'category' is the name we have given to the page which shows all the posts from one category
+			- Here we use 'item' in the url instead of post.category since we defined for item in cat_menu
+	- If want the category drop down in every page we need to add the function we just created inside every view in
+	  views.py file, even though we added the code for dropdown in base.html.
+22] To create a page where all the categories of the Blog are displayed
+	- First we need to create a function view CategoryView inside views.py
+		- Here write the code to query the database
+	- Now go to urls.py add a new path with the new view we created.
+	- Now create a category_list.html file which we linked in the urls.py
+		- Here we create a for loop to display the content in the data base all at once
+			- We use the context dictionary variable here.
+21] To make sure only the author can edit and delete posts
+	- Django generates a user.id automatically
+	- We can use this to determine if the current logged in user is the original author of the post
+	- While defining the Post model in our models.py file we have created an 'author' field with 'User' as an argument.
+		- Here we connect the django User form with our model which has first_name, last_name and id etc.
+		- We can use this post.author.id to distinguish between a logged in user and the author of the post.
+			- {% if user.id == post.author.id %}
+	- We have to add this code to every where we have added 'Edit' and 'Delete' links in our page
+	- We also have to add this to the page where we update and delete our posts, to make sure the page is not accessible
+	  with a direct url to the page.
+22] To make sure the users can make posts only on their behalf
+	- To avoid users making posts as other registered users we need to use a JS code.
+	- For this go to add_post.html
+		- <script>
+    			var name = "{{ user.id }}";
+    			document.getElementById("user").value = name;
+		  </script>
+		- Now go to forms.py and change the 'author' to a text field.
+			- Now set an id to use in the JS code
+			- Also set up a value to empty string which we also use in the JS code 
+			- We also set the attribute 'type':'hidden' to make sure people can't type another users name.
+23] To add a like button in our blog posts
+	- For this first we have to create a field in our Post model	
+	- likes = models.ManyToManyField(User, related_name = 'blog_posts'
+	- Now we need to create a function view in our views.py 
+		- def LikeView(request, pk):
+	- No go to article_details.html create a form to add the like button
+	- Now we need to make a function in our Post model to count the total no of likes a post gets
+24] To display the no of likes a post gets
+	- For this we need to go to the ArticleDetailView in our views.py create a context dictionary
+	- Now go to article_details.html to add the no of likes in the page.
+25] To add an unlike button
+	- Go to our LikeView where we and before adding an unlike button we have to make sure a user can
+	  only like a post once.
+	- For this we have to create an if statement
+		- if post.likes.filter(id=request.user.id).exists():
+			post.likes.remove(request.user)
+        		liked = False
+    		  else:
+        		post.likes.add(request.user)
+        		liked = True
+			
+			- Here post is the variable we store our user id.
+			- Here likes is the name of our field in our model.
+	- Now we have to create a context variable to create context data to pass in our article details page.
+	- For this we go to def get_context_data() function in our ArticleDetailView.
+		- liked = False
+		  if stuff.likes.filter(id=self.request.user.id).exists():
+			liked = True
+		  context["liked"] = liked
+			- Here stuff is the variable we store our id.
+26] To add new fields to form in register page and style the form using Bootstrap.
+	- We have used django's built in UserCreationForm for our registration page, but it doesn't have
+	  all the fields we want. So to add the extra fields we needed we have to create a forms.py file
+	  in the 'memebers' app.
+	- Here we create new class and inherit the UserCreationForm and add the extra fields we want.
+	- class SignUpForm(UserCreationForm):
+		email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    		first_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    		last_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))	
+	
+		class Meta():
+        		model = User
+        		fields = ('username', 'first_name', 'last_name', 'email','password1','password2')
+	- Here model=User is the name of the built in django form.
+	- We use 'widget' to style newly added fields by us.
+	- To stlye the built in 'username' and 'password' fields we make use of the __init__ method.
+		def __init__(self, *args, **kwargs):
+        		super(SignUpForm, self).__init__(*args, **kwargs)
+        		self.fields['username'].widget.attrs['class'] = 'form-control'
+        		self.fields['password1'].widget.attrs['class'] = 'form-control'
+        		self.fields['password2'].widget.attrs['class'] = 'form-control'
+
+27] To add a rich text editor to the blog
+	- To add a custom text editor so that we can personalise the blog posts we use 'ckeditor' here.
+	- For this first we have to install ckeditor using pip in our system.
+	- Then we import it in our models.py file
+		from ckeditor.fields import RichTextField
+	- Now we change the body field to RichTextField
+		body = RichTextField(blank=True, null=True)
+	- Now we have to add this 'ckeditor' to our installed apps in settings.py.
+	- Then we have to make a migration and push that migration in to our data base.
+	- Next we have to add this to our add_post.html file
+		 {{ form.media }}
+	- Next we use the same code in update_post.html to add the rich text editor to our edit page.
+28] To add Article snippets to our blog
+	- For this first we have to make a field in our 'Post' model.
+	- snippet = models.CharField(max_length=255, default='article texts')
+	- Next we need to add this field in our 'PostForm' in forms.py file
+
+29] To add an edit profile page to the blog
+	- For this first we have to create a new edit_profile.html page in our 'members' app.
+	- Next we need to have a form to edit the profile.
+		- Here we use the UserChangeForm built into django
+	- Next we create a class UserEditView 
+	- Next we copy the code from register.html and paste in edit_profile.html.
+	- Next we define the url in our urls.py file.
+	- Next we need to add the link in base.html to edit profile page.
+
+30] To style the edit profile page
+	- We have used built in UserChangeForm to generate the form in edit profile page.
+	- To style this form we have create our own form and inherit UserChangeForm.
+	- We then style the form by using widgets.
+	- After creating our form and styling it we have to change the form_class in our UserEditView
+
+31] To change password change page
+	- For this first we have to import auth_views in our urls.py file
+		from django.contrib.auth import views as auth_views
+	- Then set up a url 
+		path('password/', auth_views.PasswordChangeView.as_view
+		(template_name='registration/change-password.html'))
+		- Here PasswordChageView is a built in view in django that we have imported here
+		- Here 'template_name' argument is used to style our password change page.
+		- Then create the change-password.html page
+		- Next we have to create our own form to style the change-password webpage.
+			class PasswordChangingForm(PasswordChangeForm):
+				- Here PasswordChangeForm is a built in form.
+			- We then style the page using widgets
+		- Now to redirect to a new web page after the password change we have to create a new page.
+			- For this we create password-successs page
+			- Now create a view in views.py
+			- Then add the url in urls.py
+
+32] To upload images
+	- For this first we have to add a field in our model in models.py.
+		header_image = models.ImageField(null = True, blank = True, upload_to="images/")
+			- Here we set null=True, blank=True to create posts without images if it is needed.
+			- Now we don't actually store images in our data bases we store them in cloud and 
+			  reference the address here.
+			- Here upload_to="images/" is specifying the folder to store the images, which will
+			  be created automatically.
+	- Now we have to add this newly created field in our form in forms.py
+	- Now we have to add the following lines of code in our settings.py
+		MEDIA_URL = '/media/'
+		- To store images, django considers images as media so we are specifying a directory.
+		- To specify how to create media directory
+		MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+		- This 'media' folder will be created automatically.
+		STATICFILES_DIRS =  (
+    			os.path.join(BASE_DIR, 'static'),
+			)
+	- Now we import os in the beggining of the settings.py file.
+	-Now we have to import settings and static in our urls.py file of our project.
+		from django.conf import settings
+		from django.conf.urls.static import static
+	- Next add this code.
+		urlpatterns = [
+	
+		]+  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+	- Next go to add_post.html 
+		- In the form tag add the code 
+			enctype="multipart/form-data"
+			- This is to allow images submission to the form.
+	- Next go to article_details.html to add the image url to display the image on the page.
+		{% if post.header_image %}
+			<img src="{{ post.header_image.url }}" alt="">
+		{% endif %}
+		- Here we put the link inside an if statement so that posts without an image is also allowed.
+		
+33] To customize edit_profile page
+	- It is hard to customize the Edit Profile page of our blog since we used django 
+	  UserCreationForm, so to customize it we are creating a new model and associating with 
+	  the built in User model.
+	- class Profile(models.Model):
+		user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
+			- Here OneToOneField is the field we are using to associate the new Profile model
+			  with User model.
+			- Passing in User as an argument to associate with the new model.
+	- Now we have to make migrations and push that migration.
+	- Next register the new model in admin.py file.
+	- Next go to edit_profile.html file to pass the data dynamically.
+34] To add profile pic and social media links to our article_details page.
+	- For this first we have to make fields for the profile pic and social media links in our Profile model.
+	- Next go to article_details.html to display the profile pic and social media links dynamically.
+35] To add a default profile pic
+	- For this first we have to go to settings.py file and add the code to deal with the static files.
+		STATICFILES_DIRS = [
+    			os.path.join(BASE_DIR, 'static')
+			]
+			- Here we specify the directory to look for the static files.
+	- Next we have to create a new static folder in the root directory of our project.
+		- Then add subfolders inside to add images, js and css.
+		- We add the default profile pic inside the images folder.
+	- Next we have to load the static in the article_details page
+		{% load static %}
+	- Now we add the url of the image in the img tag 
+		{% static 'theblog/images/default_profile_pic.jpg' %}
+
+36] To create a Blog Profile Page
+	- For this first we have to create a class view and inherit the DetailView.
+	- 	 class ShowProfilePageView(DetailView):
+			model = Profile
+			template_name = 'registration/user_profile.html'
+			- Now to get the id of the user we are defining a function 
+			- Here first we take the id and then create a context variable and then assign it as context dictionary.
+		 	def get_context_data(self, *args, **kwargs):
+				page_user = get_object_or_404(Profile, id=self.kwargs['pk'])
+				context = super( ShowProfilePageView, self).get_context_data(*args, **kwargs)
+				context["page_user"] = page_user
+				return context
+	- Now we have to create the user_profile.html file
+		- Here we pass in the data dynamically using the "page_user" context dictionary.
+
+37] To create an Edit Profile Page
+	- For this we create an EditProfilePageView as class view and inherit the UpdateView.
+	- Now create an edit_profie_page.html 
+	- Now we have to create a form here
+	- Now to make sure only a user can edit their own Profile page we use,
+		{% if user.id == profile.user.id %} 
+	Then we specify the fields we want to include in the form in EditProfilePageView.
+	- Now we want to include a dropdown menu in the base.html to show Profile Page, Edit 
+	  profile page and Settings page when the user is logged in.
+38] To create a user profile page
+	- For this we create a CreateProfilePageView and inherit CreateView
+	- Then we have to create a create_user_profile_page.html file.
+	- Now we define a form_class 
+	- Create a new ProfilePageForm in forms.py
+	- Now defining a function to get the id of the user that is creating the account.
+		 def form_valid(self, form):
+			form.instance.user = self.request.user
+			return super().form_valid(form)
+	- Next we have to add this new page in base.html.
+		- Now to make sure that users can login before they make a profile page we wrap the entire Profile dropdown in 
+			{% if user.profile.id %}
+		- Now we create a new link in the dropdown menu to link to the create_user_profile_page.
+39] To create a blog comment section 
+	- For this we first need to add a Comment model in models.py file.
+	- Here we add the necessary fields to the comment section.
+	- Now we need to add the code for the comments to show in article_details page.
+40] To post blog comments from the webpage
+	- For this first we have to create an add_comment.html page.
+	- Then add the url in urls.py.
+	- Now we need to add a form in forms.py to style the comment form
+	- Now to automatically get the id of the post that the comment is made on we use,
+		def form_valid(self, form):
+        	form.instance.post_id = self.kwargs['pk']
+        	return super().form_valid(form)
+41] To style the login page
+	- For this instead of passing 'form.as_p', we are adding our own fields and passing
+	  the name attribute as in the django's form.
+
+
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

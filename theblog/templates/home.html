@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Post</h1>
+<!-- Here we use Jinja to fetch the data from the data base -->
+<!-- Here 'post' is the name of the model we defined in models.py -->
+<ul>
+{% for post in object_list %}
+      <li> <a href="{% url 'article-detail' post.pk %}"> {{ post.title }}</a> - <a href="{% url 'category' post.category|slugify %}">{{ post.category}}</a>  - {{ post.author.first_name }} {{ post.author.last_name }} - {{ post.post_date }} <small>
+        <!-- To display the 'Edit' and 'Delete' links only for the logged in users-->
+        {% if user.is_authenticated %}
+            <!-- To display the 'Edit' and 'Delete' links only for the author of the post-->
+            {% if user.id == post.author.id %}
+        <a href="{% url 'update_post' post.pk %}">Edit</a>
+      <a href="{% url 'delete_post' post.pk %}">Delete</a>
+            {% endif %}
+        {% endif %}
+      </small><br>
+        {{ post.snippet }}
+        <!-- {{ post.body |slice:":500" | safe }}</li> -->
+        <!-- Here |slice:":500" makes sure only 500 characters of a blog post is displayed on the home page -->
+{% endfor %}
+</ul>
+
+<!-- Next goto urls.py to link the 'class views' we created in views.py   -->
+<!-- Here we use post.author.last_nane, the last_name comes from the 'User' model that django has which we have used  while creating the 'author' field -->
+<!-- Here { url 'article-detail' post.pk } is used to link the articles to the title, where  'post.pk' is used to reference the primary key django generates automatically -->
+<!-- In the category url we used post.category because it will denote to the specific page instead of the primary key -->
+
+<!-- Here we added 'slugify' at the end of category to add '-' instead of white spaces in the url.Now we need to change the argument in the CategoryView in views.py, since now we slugify the url here it will generate a '-' instead of white spaces, which is not present the argument we pass in the view to fetch the pages. -->
+{% endblock %}

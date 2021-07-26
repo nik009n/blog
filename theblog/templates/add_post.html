@@ -1,0 +1,28 @@
+{% extends 'base.html' %} 
+{% block title %} 
+Create a new Blog post 
+{% endblock %} 
+{% block content %}
+{% if user.is_authenticated %}
+<h1>Add Blog Post</h1>
+<br /><br />
+<div class="form-group">
+    <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- To use django form system -->
+    <!-- Here we use form.media to use "RichTextField" we have imported in our model -->
+    {{ form.media }}
+    {{ form.as_p }}
+    
+    <button class="btn btn-secondary">Post</button>
+    </form>
+</div>
+<!-- JS code to make sure users can make posts only on their behalf -->
+<script>
+    var name = "{{ user.id }}";
+    document.getElementById("user").value = name;
+</script>
+{% else %} You are not allowed here! 
+{% endif %} 
+{% endblock %}

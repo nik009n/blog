@@ -1,0 +1,28 @@
+{% extends 'base.html' %} 
+{% block title %} 
+Edit Profile 
+{% endblock %} 
+{% block content %}
+{% if user.is_authenticated %}
+    {% if user.id == profile.user.id %}
+<h1>Edit Profile Page</h1>
+<br /><br />
+<div class="form-group">
+    <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- To use django form system -->
+    
+    
+    {{ form.as_p }}
+    
+    <button class="btn btn-secondary">Post</button>
+    </form>
+</div>
+{% else %}
+    You are not the currect to user to edit this page
+{% endif %}
+
+{% else %} You are not allowed here! 
+{% endif %} 
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Wrapping the entire page in if category_posts to make sure page will only load if the category exist in the data base -->
+{% if category_posts %}
+<h1>Categories</h1>
+<!-- Here we use Jinja to fetch the data from the data base -->
+<h1>{{ cats }}</h1>
+<ul>
+{% for post in category_posts %}
+<!-- Here 'category_posts' is the variable we store the filtered data in views.py -->
+    
+      <li> <a href="{% url 'article-detail' post.pk %}"> {{ post.title }}</a> - {{ post.author.first_name }} {{ post.author.last_name }} - {{ post.post_date }} <small>
+        {% if user.is_authenticated %}
+        <a href="{% url 'update_post' post.pk %}">Edit</a>
+      <a href="{% url 'delete_post' post.pk %}">Delete</a>
+        {% endif %}
+      </small><br>
+        {{ post.body |slice:":500" | safe }}</li>
+      
+{% endfor %}
+</ul>
+{% else %}
+<h2>This page does not exist</h2>
+{% endif %}
+{% endblock %}

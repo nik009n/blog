@@ -1,0 +1,25 @@
+{% extends 'base.html' %} {% block title %} Edit Blog post {% endblock %} 
+{% block content %}
+ <!--To make sure the edit page wouldn't load while the we are logged out even if knew the url of the edit page  -->
+{% if user.is_authenticated %}
+      {% if user.id == post.author.id %}
+<h1>Update Blog Post</h1>
+<br /><br />
+<div class="form-group">
+  <form method="POST">
+    {% csrf_token %}
+
+    <!-- To use django form system -->
+    {{ form.media }}
+    {{ form.as_p }}
+
+    <button class="btn btn-secondary">Post</button>
+  </form>
+</div>
+      {% else %}
+      You are not allowed here!
+      {% endif %}
+{% else %} 
+You are not allowed here! 
+{% endif %} 
+{% endblock %}

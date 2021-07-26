@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<h1>User Profile</h1>
+{{ page_user }}
+<div class="card mb-3" >
+    <div class="row g-0">
+      <div class="col-md-2">
+        {% if page_user.profile_pic %}
+            <img src="{{ page_user.profile_pic.url }}" width="150" height="200" alt="...">
+        {% else %}
+        <img src="{% static 'theblog/images/default_profile_pic.jpg' %}" width="150" height="200" alt="...">
+            {% endif %}
+      </div>
+      <div class="col-md-10">
+        <div class="card-body">
+            <!-- Here "page_user.user.first_name" is used since page_user is the context variable we create and user is in the User model that we associate with the Profile model. -->
+          <h5 class="card-title"> {{ page_user.user.first_name }} {{ page_user.user.last_name }}</h5>
+          <p class="card-text text-muted">
+             
+            <!-- Putting the links inside an if statement so that the links will only be displayed if the user has entered it in the profile page. -->
+            <!-- Here "page_user.website_url is used, since page_user is the context variable and website_url is the name of the field in the Profile model." -->
+                {% if page_user.website_url %}
+                    <a href="{{ page_user.website_url }}">Facebook |</a>
+                {% endif %}
+                {% if page_user.facebook_url %}
+                    <a href="{{ page_user.facebook_url }}">Facebook |</a>
+                {% endif %}
+                {% if page_user.twitter_url %}    
+                    <a href="{{ page_user.twitter_url }}">Twitter |</a>
+                {% endif %}
+                {% if page_user.instagram_url %}    
+                    <a href="{{ page_user.instagram_url }}">Instagram</a>
+                {% endif %}
+                {% if page_user.pinterest_url %}    
+                    <a href="{{ page_user.pinterest_url }}">Instagram</a>
+                {% endif %}
+               
+                </p>
+          <p class="card-text">{{ page_user.bio }}</p>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
